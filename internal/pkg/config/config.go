@@ -68,6 +68,10 @@ var Config struct {
 		Dialect       string `koanf:"dialect"`
 		ConnectionURI string `koanf:"connection_uri"`
 	} `koanf:"database"`
+
+	Security struct {
+		UseCors bool `koanf:"use_cors"`
+	}
 }
 
 // Load configuration from file
@@ -83,6 +87,7 @@ func Load() error {
 		"documents.id_length":           8,
 		"documents.max_document_length": 400_000,
 		"documents.max_age":             2592000,
+		"security.use_cors":             true,
 	}, "."), nil)
 
 	// Load configuration from TOML on top of default values

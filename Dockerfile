@@ -1,18 +1,28 @@
-FROM golang:1.16.1-alpine3.13
+FROM golang:latest
 
-RUN mkdir /opt/spirit
+WORKDIR /app/
+COPY . /app/
 
-COPY . /opt/spirit
-WORKDIR /opt/spirit
-
-# We need GCC and other packages for sqlite3 support
-RUN apk add --no-cache build-base
-
-# Download dependencies
 RUN go mod download
+RUN go mod tidy
 
-# Build the binary
-RUN go build --ldflags "-s -w" -o bin/spirit -tags sqlite ./cmd/spirit/main.go
+RUN GOOS=linux GOARCH=amd64 go build \
+    --ldflags "-s -w" \
+    -o spirit \
+    -tags sqlite \
+    ./cmd/spirit/main.go
 
-# Run the generated binary
-CMD ["/opt/spirit/bin/spirit"]
+# Stage 1 done
+RUN apt-get update -y \
+ && apt-get install -y curl ca-certificates openssl git tar fontconfig tzdata iproute2 locales \
+ && useradd -d /home/container -m container
+
+USER container
+ENV  USER=container HOME=/home/container
+
+WORKDIR     /home/container
+
+COPY        entrypoint.sh /entrypoint.sh
+
+CMD         ["/bin/bash", "/entrypoint.sh"]
+

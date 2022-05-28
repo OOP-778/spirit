@@ -37,24 +37,26 @@ func registerRouter(app *fiber.App) {
 		Max:      config.Config.Server.Ratelimits.Requests,
 	}))
 
-	app.Use(cors.New())
+	if config.Config.Security.UseCors {
+		app.Use(cors.New())
+		// Custom middleware to set security-related headers
+		app.Use(func(c *fiber.Ctx) error {
+			// Set some security headers
+			c.Set("X-Download-Options", "noopen")
+			c.Set("X-DNS-Prefetch-Control", "off")
+			c.Set("X-Frame-Options", "SAMEORIGIN")
+			c.Set("X-XSS-Protection", "1; mode=block")
+			c.Set("X-Content-Type-Options", "nosniff")
+			c.Set("Referrer-Policy", "no-referrer-when-downgrade")
+			c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+			c.Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';")
+
+			// Go to next middleware
+			return c.Next()
+		})
+	}
+
 	app.Use(logger.New())
-
-	// Custom middleware to set security-related headers
-	app.Use(func(c *fiber.Ctx) error {
-		// Set some security headers
-		c.Set("X-Download-Options", "noopen")
-		c.Set("X-DNS-Prefetch-Control", "off")
-		c.Set("X-Frame-Options", "SAMEORIGIN")
-		c.Set("X-XSS-Protection", "1; mode=block")
-		c.Set("X-Content-Type-Options", "nosniff")
-		c.Set("Referrer-Policy", "no-referrer-when-downgrade")
-		c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
-		c.Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';")
-
-		// Go to next middleware
-		return c.Next()
-	})
 
 	document.Register(app)
 }

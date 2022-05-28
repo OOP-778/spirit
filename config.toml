@@ -10,7 +10,7 @@ duration = 60_000 # in ms
 
 [database]
 dialect = "sqlite" # possible: mysql, sqlite, postgresql
-connection_uri = "spacebin.db"
+connection_uri = "/home/container/spacebin.db"
 
 [documents]
 id_length = 8
